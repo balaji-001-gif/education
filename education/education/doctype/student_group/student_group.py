@@ -45,7 +45,7 @@ class StudentGroup(Document):
 			self.student_category,
 			self.course,
 		)
-		students = [d.student for d in program_enrollment] if program_enrollment else []
+		students = [d.get("student") for d in program_enrollment] if program_enrollment else []
 		for d in self.students:
 			if (
 				not frappe.db.get_value("Student", d.student, "enabled")
@@ -111,7 +111,7 @@ def get_students(
 	if enrolled_students:
 		student_list = []
 		for s in enrolled_students:
-			if frappe.db.get_value("Student", s.student, "enabled"):
+			if frappe.db.get_value("Student", s.get("student"), "enabled"):
 				s.update({"active": 1})
 			else:
 				s.update({"active": 0})
@@ -189,7 +189,11 @@ def fetch_students(doctype, txt, searchfield, start, page_len, filters):
 			(filters.get("student_group")),
 		)
 		students = (
-			[d.student for d in enrolled_students if d.student not in student_group_student]
+			[
+				d.get("student")
+				for d in enrolled_students
+				if d.get("student") not in student_group_student
+			]
 			if enrolled_students
 			else [""]
 		) or [""]

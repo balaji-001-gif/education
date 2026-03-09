@@ -46,7 +46,7 @@ class FeeSchedule(Document):
 		fees_amount = frappe.db.sql(
 			"""select sum(grand_total), sum(outstanding_amount) from `tabSales Invoice`
             where fee_schedule=%s and docstatus=1 and student is not null""",
-			(self.name),
+			(self.name,),
 		)
 
 		if fees_amount:
@@ -175,7 +175,7 @@ def generate_fees(fee_schedule):
 		)
 		for student in students:
 			try:
-				student_id = student.student
+				student_id = student.get("student")
 				if create_so:
 					create_sales_order(fee_schedule, student_id)
 				else:

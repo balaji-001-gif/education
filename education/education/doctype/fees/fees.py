@@ -41,11 +41,11 @@ class Fees(AccountsController):
 				filters={"name": self.company},
 			)[0]
 		if not self.receivable_account:
-			self.receivable_account = accounts_details.default_receivable_account
+			self.receivable_account = accounts_details.get("default_receivable_account")
 		if not self.income_account:
-			self.income_account = accounts_details.default_income_account
+			self.income_account = accounts_details.get("default_income_account")
 		if not self.cost_center:
-			self.cost_center = accounts_details.cost_center
+			self.cost_center = accounts_details.get("cost_center")
 		if not self.contact_email:
 			self.contact_email = self.get_student_emails()
 
@@ -156,9 +156,7 @@ def get_fee_list(
 	doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"
 ):
 	user = frappe.session.user
-	student = frappe.db.sql(
-		"select name from `tabStudent` where student_email_id= %s", user
-	)
+	student = frappe.db.get_value("Student", {"student_email_id": user}, "name")
 	if student:
 		return frappe.db.sql(
 			"""

@@ -37,22 +37,23 @@ def execute(filters=None):
 
 	data = []
 	for student in absent_students:
-		if not student.student in leave_applicants:
-			row = [student.student, student.student_name, student.student_group]
+		student_id = student.get("student")
+		if not student_id in leave_applicants:
+			row = [student_id, student.get("student_name"), student.get("student_group")]
 			stud_details = frappe.db.get_value(
 				"Student",
-				student.student,
+				student_id,
 				["student_email_id", "student_mobile_number"],
 				as_dict=True,
 			)
 
-			if stud_details.student_email_id:
-				row += [stud_details.student_email_id]
+			if stud_details and stud_details.get("student_email_id"):
+				row += [stud_details.get("student_email_id")]
 			else:
 				row += [""]
 
-			if stud_details.student_mobile_number:
-				row += [stud_details.student_mobile_number]
+			if stud_details and stud_details.get("student_mobile_number"):
+				row += [stud_details.get("student_mobile_number")]
 			else:
 				row += [""]
 
@@ -107,12 +108,12 @@ def get_leave_applications(date):
 
 
 def get_transportation_details(date, student_list):
-	academic_year = frappe.get_all(
+	academic_year_list = frappe.get_all(
 		"Academic Year",
 		filters=[["year_start_date", "<=", date], ["year_end_date", ">=", date]],
 	)
-	if academic_year:
-		academic_year = academic_year[0].name
+	if academic_year_list:
+		academic_year = academic_year_list[0].get("name")
 	elif frappe.defaults.get_defaults().academic_year:
 		academic_year = frappe.defaults.get_defaults().academic_year
 	else:
@@ -129,5 +130,8 @@ def get_transportation_details(date, student_list):
 	)
 	transportation_map = {}
 	for d in transportation_details:
-		transportation_map[d.student] = [d.mode_of_transportation, d.vehicle_no]
+		transportation_map[d.get("student")] = [
+			d.get("mode_of_transportation"),
+			d.get("vehicle_no"),
+		]
 	return transportation_map

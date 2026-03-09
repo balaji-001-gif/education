@@ -73,7 +73,7 @@ class StudentAttendance(Document):
 		else:
 			student_group = self.student_group
 		student_group_students = [
-			d.student for d in get_student_group_students(student_group)
+			d.get("student") for d in get_student_group_students(student_group)
 		]
 		if student_group and self.student not in student_group_students:
 			student_group_doc = get_link_to_form("Student Group", student_group)
@@ -129,7 +129,7 @@ class StudentAttendance(Document):
 
 def get_holiday_list(company=None):
 	if not company:
-		company = get_default_company() or frappe.get_all("Company")[0].name
+		company = get_default_company() or frappe.get_all("Company")[0].get("name")
 
 	holiday_list = frappe.get_cached_value("Company", company, "default_holiday_list")
 	if not holiday_list:

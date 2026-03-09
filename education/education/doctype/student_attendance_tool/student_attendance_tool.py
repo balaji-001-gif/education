@@ -61,7 +61,7 @@ def get_student_attendance_records(
 
 	for attendance in student_attendance_list:
 		for student in student_list:
-			if student.student == attendance.student:
-				student.status = attendance.status
+			if student.get("student") == attendance.get("student"):
+				student["status"] = attendance.get("status")
 
 	return student_list

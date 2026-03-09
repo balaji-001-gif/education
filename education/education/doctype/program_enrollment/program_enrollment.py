@@ -59,7 +59,9 @@ class ProgramEnrollment(Document):
 		).run(as_dict=True)
 
 		if date:
-			frappe.db.set_value("Student", self.student, "joining_date", date[0].enrollment_date)
+			frappe.db.set_value(
+				"Student", self.student, "joining_date", date[0].get("enrollment_date")
+			)
 
 	def make_fee_records(self):
 		from education.education.api import get_fee_components
@@ -89,7 +91,7 @@ class ProgramEnrollment(Document):
 	def get_courses(self):
 		return frappe.db.sql(
 			"""select course from `tabProgram Course` where parent = %s and required = 1""",
-			(self.program),
+			(self.program,),
 			as_dict=1,
 		)
 
@@ -111,7 +113,7 @@ class ProgramEnrollment(Document):
 			"Course Enrollment", filters={"program_enrollment": self.name}
 		)
 		return [
-			frappe.get_doc("Course Enrollment", course_enrollment.name)
+			frappe.get_doc("Course Enrollment", course_enrollment.get("name"))
 			for course_enrollment in course_enrollment_names
 		]
 
@@ -164,7 +166,7 @@ def get_students(doctype, txt, searchfield, start, page_len, filters):
 		fields=["student"],
 	)
 
-	students = [d.student for d in enrolled_students] if enrolled_students else [""]
+	students = [d.get("student") for d in enrolled_students] if enrolled_students else [""]
 
 	return frappe.db.sql(
 		"""select

@@ -77,11 +77,11 @@ def get_attendance_count(student, academic_year, academic_term=None):
 		)
 
 		for row in data:
-			if row.status == "Present":
-				attendance.present = row.count
-			if row.status == "Absent":
-				attendance.absent = row.count
-			attendance.total += row.count
+			if row.get("status") == "Present":
+				attendance.present = row.get("count")
+			if row.get("status") == "Absent":
+				attendance.absent = row.get("count")
+			attendance.total += row.get("count")
 		return attendance
 	else:
 		frappe.throw(_("Please enter the Academic Year and set the Start and End date."))

@@ -46,7 +46,7 @@ class StudentLeaveApplication(Document):
 		)
 
 		if data:
-			link = get_link_to_form("Student Leave Application", data[0].name)
+			link = get_link_to_form("Student Leave Application", data[0].get("name"))
 			frappe.throw(
 				_("Leave application {0} already exists against the student {1}").format(
 					link, frappe.bold(self.student)
@@ -122,8 +122,8 @@ class StudentLeaveApplication(Document):
 				as_dict=1,
 			)
 
-			for name in attendance:
-				frappe.db.set_value("Student Attendance", name, "docstatus", 2)
+			for row in attendance:
+				frappe.db.set_value("Student Attendance", row.get("name"), "docstatus", 2)
 
 
 def daterange(start_date, end_date):

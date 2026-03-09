@@ -65,7 +65,7 @@ class ProgramEnrollmentTool(Document):
 					)
 				students = students.run(as_dict=1)
 
-				student_list = [d.student for d in students]
+				student_list = [d.get("student") for d in students]
 				if student_list:
 					inactive_students = frappe.db.sql(
 						"""
@@ -75,9 +75,8 @@ class ProgramEnrollmentTool(Document):
 						as_dict=1,
 					)
 
-					for student in students:
-						if student.student in [d.student for d in inactive_students]:
-							students.remove(student)
+					inactive_student_names = [d.get("student") for d in inactive_students]
+					students = [s for s in students if s.get("student") not in inactive_student_names]
 
 		if students:
 			return students

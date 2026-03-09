@@ -80,7 +80,7 @@ def update_item(fee_category):
 		{"parent": fee_category.item},
 		["company", "selling_cost_center", "income_account"],
 	)
-	item_default_companies = [d.company for d in item_defaults]
+	item_default_companies = [d.get("company") for d in item_defaults]
 	fee_category_companies = [d.company for d in fee_category.item_defaults]
 	for fee_category_default in fee_category.item_defaults:
 		if fee_category_default.company not in item_default_companies:

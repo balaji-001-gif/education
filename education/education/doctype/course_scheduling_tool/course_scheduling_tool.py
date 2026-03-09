@@ -97,11 +97,11 @@ class CourseSchedulingTool(Document):
 
 		for d in schedules:
 			try:
-				if calendar.day_name[getdate(d.schedule_date).weekday()] in days:
-					frappe.delete_doc("Course Schedule", d.name)
-					rescheduled.append(d.name)
+				if calendar.day_name[getdate(d.get("schedule_date")).weekday()] in days:
+					frappe.delete_doc("Course Schedule", d.get("name"))
+					rescheduled.append(d.get("name"))
 			except Exception:
-				reschedule_errors.append(d.name)
+				reschedule_errors.append(d.get("name"))
 		return rescheduled, reschedule_errors
 
 	def make_course_schedule(self, date):

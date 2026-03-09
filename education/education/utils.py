@@ -131,7 +131,7 @@ def enroll_in_program(program_name, student=None):
 	if has_super_access():
 		return
 
-	if not student == None:
+	if student is not None:
 		student = frappe.get_doc("Student", student)
 	else:
 		# Check if self enrollment in allowed

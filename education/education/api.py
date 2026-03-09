@@ -18,7 +18,7 @@ def get_course(program):
 	"""
 	courses = frappe.db.sql(
 		"""select course, course_name from `tabProgram Course` where parent=%s""",
-		(program),
+		(program,),
 		as_dict=1,
 	)
 	return courses
@@ -56,10 +56,10 @@ def enroll_student(source_name):
 	)
 	program_enrollment = frappe.new_doc("Program Enrollment")
 	program_enrollment.student = student.name
-	program_enrollment.student_category = student_applicant.student_category
+	program_enrollment.student_category = student_applicant.get("student_category")
 	program_enrollment.student_name = student.student_name
-	program_enrollment.program = student_applicant.program
-	program_enrollment.academic_year = student_applicant.academic_year
+	program_enrollment.program = student_applicant.get("program")
+	program_enrollment.academic_year = student_applicant.get("academic_year")
 	program_enrollment.save()
 
 	frappe.publish_realtime(
@@ -299,7 +299,7 @@ def get_assessment_criteria(course):
 def get_assessment_students(assessment_plan, student_group):
 	student_list = get_student_group_students(student_group)
 	for i, student in enumerate(student_list):
-		result = get_result(student.student, assessment_plan)
+		result = get_result(student.get("student"), assessment_plan)
 		if result:
 			student_result = {}
 			for d in result.details:
@@ -423,7 +423,7 @@ def submit_assessment_results(assessment_plan, student_group):
 	total_result = 0
 	student_list = get_student_group_students(student_group)
 	for i, student in enumerate(student_list):
-		doc = get_result(student.student, assessment_plan)
+		doc = get_result(student.get("student"), assessment_plan)
 		if doc and doc.docstatus == 0:
 			total_result += 1
 			doc.submit()
@@ -461,8 +461,8 @@ def update_email_group(doctype, name):
 	if doctype == "Student Group":
 		students = get_student_group_students(name)
 	for stud in students:
-		for guard in get_student_guardians(stud.student):
-			email = frappe.db.get_value("Guardian", guard.guardian, "email_address")
+		for guard in get_student_guardians(stud.get("student")):
+			email = frappe.db.get_value("Guardian", guard.get("guardian"), "email_address")
 			if email:
 				email_list.append(email)
 	add_subscribers(name, email_list)
@@ -525,9 +525,9 @@ def get_student_info():
 		filters={"user": email},
 	)[0]
 
-	current_program = get_current_enrollment(student_info.name)
+	current_program = get_current_enrollment(student_info.get("name"))
 	if current_program:
-		student_groups = get_student_groups(student_info.name, current_program.program)
+		student_groups = get_student_groups(student_info.get("name"), current_program.get("program"))
 		student_info["student_groups"] = student_groups
 		student_info["current_program"] = current_program
 	return student_info
@@ -682,21 +682,21 @@ def get_student_invoices(student):
 
 	for si in sales_invoice_list:
 		student_program_invoice_status = {}
-		student_program_invoice_status["status"] = si.status
+		student_program_invoice_status["status"] = si.get("status")
 		student_program_invoice_status["program"] = get_program_from_fee_schedule(
-			si.fee_schedule
+			si.get("fee_schedule")
 		)
 		symbol = get_currency_symbol(si.get("currency", "INR"))
-		student_program_invoice_status["amount"] = symbol + " " + str(si.outstanding_amount)
-		student_program_invoice_status["invoice"] = si.name
-		if si.status == "Paid":
-			student_program_invoice_status["amount"] = symbol + " " + str(si.grand_total)
+		student_program_invoice_status["amount"] = symbol + " " + str(si.get("outstanding_amount"))
+		student_program_invoice_status["invoice"] = si.get("name")
+		if si.get("status") == "Paid":
+			student_program_invoice_status["amount"] = symbol + " " + str(si.get("grand_total"))
 			student_program_invoice_status[
 				"payment_date"
-			] = get_posting_date_from_payment_entry_against_sales_invoice(si.name)
+			] = get_posting_date_from_payment_entry_against_sales_invoice(si.get("name"))
 			student_program_invoice_status["due_date"] = "-"
 		else:
-			student_program_invoice_status["due_date"] = si.due_date
+			student_program_invoice_status["due_date"] = si.get("due_date")
 			student_program_invoice_status["payment_date"] = "-"
 
 		student_sales_invoices.append(student_program_invoice_status)

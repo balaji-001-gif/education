@@ -29,10 +29,11 @@ def execute(filters=None):
 	data = []
 
 	for stud in students:
-		student_status = frappe.db.get_value("Student", stud.student, "enabled")
+		student_id = stud.get("student")
+		student_status = frappe.db.get_value("Student", student_id, "enabled")
 		date = from_date
 		total_present = total_absent = total_leave = 0.0
-		row = {"student": stud.student, "student_name": stud.student_name}
+		row = {"student": student_id, "student_name": stud.get("student_name")}
 		status_map = {
 			"Present": "P",
 			"Absent": "A",
@@ -44,8 +45,8 @@ def execute(filters=None):
 		for day in range(total_days_in_month):
 			status = "None"
 
-			if att_map.get(stud.student):
-				status = att_map.get(stud.student).get(date, "None")
+			if att_map.get(student_id):
+				status = att_map.get(student_id).get(date, "None")
 			elif not student_status:
 				status = "Inactive"
 			else:
@@ -121,7 +122,7 @@ def get_columns(days_in_month):
 def get_students_list(students):
 	student_list = []
 	for stud in students:
-		student_list.append(stud.student)
+		student_list.append(stud.get("student"))
 	return student_list
 
 
@@ -141,14 +142,16 @@ def get_attendance_list(from_date, to_date, student_group, students_list):
 		from_date, to_date, students_list
 	)
 	for d in attendance_list:
-		att_map.setdefault(d.student, frappe._dict()).setdefault(d.date, "")
+		student_id = d.get("student")
+		att_date = d.get("date")
+		att_map.setdefault(student_id, frappe._dict()).setdefault(att_date, "")
 
 		if students_with_leave_application.get(
-			d.date
-		) and d.student in students_with_leave_application.get(d.date):
-			att_map[d.student][d.date] = "Present"
+			att_date
+		) and student_id in students_with_leave_application.get(att_date):
+			att_map[student_id][att_date] = "Present"
 		else:
-			att_map[d.student][d.date] = d.status
+			att_map[student_id][att_date] = d.get("status")
 
 	att_map = mark_holidays(att_map, from_date, to_date, students_list)
 
@@ -157,7 +160,7 @@ def get_attendance_list(from_date, to_date, student_group, students_list):
 
 def get_students_with_leave_application(from_date, to_date, students_list):
 	if not students_list:
-		return
+		return {}
 	leave_applications = frappe.db.sql(
 		"""
 		select student, from_date, to_date
@@ -176,8 +179,8 @@ def get_students_with_leave_application(from_date, to_date, students_list):
 	)
 	students_with_leaves = {}
 	for application in leave_applications:
-		for date in daterange(application.from_date, application.to_date):
-			students_with_leaves.setdefault(date, []).append(application.student)
+		for date in daterange(application.get("from_date"), application.get("to_date")):
+			students_with_leaves.setdefault(date, []).append(application.get("student"))
 
 	return students_with_leaves
 

@@ -51,7 +51,7 @@ def get_payment_options(doctype, docname, phone, currency=None):
 	validate_phone_number(phone_number=phone, throw=True)
 	details = get_details(docname)
 	client = get_client()
-	order = create_order(client, details.outstanding_amount, details.currency)
+	order = create_order(client, details.get("outstanding_amount"), details.get("currency"))
 	options = {
 		"key_id": frappe.db.get_single_value("Education Settings", "razorpay_key"),
 		"name": frappe.db.get_single_value("Website Settings", "app_name"),

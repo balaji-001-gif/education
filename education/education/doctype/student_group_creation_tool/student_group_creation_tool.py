@@ -18,11 +18,11 @@ class StudentGroupCreationTool(Document):
 			"""select name as batch from `tabStudent Batch Name`""", as_dict=1
 		)
 		for batch in batches:
-			group_list.append({"group_based_on": "Batch", "batch": batch.batch})
+			group_list.append({"group_based_on": "Batch", "batch": batch.get("batch")})
 
 		courses = frappe.db.sql(
 			"""select course, course_name from `tabProgram Course` where parent=%s""",
-			(self.program),
+			(self.program,),
 			as_dict=1,
 		)
 		if self.separate_groups:
