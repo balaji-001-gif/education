@@ -54,7 +54,7 @@ class TestProgram(FrappeTestCase):
 	def tearDown(self):
 		for dt in ["Program", "Course", "Topic", "Article"]:
 			for entry in frappe.get_all(dt):
-				frappe.delete_doc(dt, entry.program)
+				frappe.delete_doc(dt, entry.get("name"))
 
 
 def make_program(name):

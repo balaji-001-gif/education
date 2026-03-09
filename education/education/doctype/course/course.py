@@ -53,7 +53,7 @@ def add_course_to_programs(course, programs, mandatory=False):
 def get_programs_without_course(course):
 	data = []
 	for entry in frappe.db.get_all("Program"):
-		program = frappe.get_doc("Program", entry.name)
+		program = frappe.get_doc("Program", entry.get("name"))
 		courses = [c.course for c in program.courses]
 		if not courses or course not in courses:
 			data.append(program.name)

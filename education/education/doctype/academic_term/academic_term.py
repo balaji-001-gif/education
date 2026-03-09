@@ -62,8 +62,8 @@ class AcademicTerm(Document):
 
 		if (
 			self.term_start_date
-			and getdate(year.year_start_date)
-			and (getdate(self.term_start_date) < getdate(year.year_start_date))
+			and getdate(year.get("year_start_date"))
+			and (getdate(self.term_start_date) < getdate(year.get("year_start_date")))
 		):
 			frappe.throw(
 				_("The Term cannot start before the Academic Year {0}").format(
@@ -73,8 +73,8 @@ class AcademicTerm(Document):
 
 		if (
 			self.term_end_date
-			and getdate(year.year_end_date)
-			and (getdate(self.term_end_date) > getdate(year.year_end_date))
+			and getdate(year.get("year_end_date"))
+			and (getdate(self.term_end_date) > getdate(year.get("year_end_date")))
 		):
 			frappe.throw(
 				_("The Term cannot end after the Academic Year {0}").format(

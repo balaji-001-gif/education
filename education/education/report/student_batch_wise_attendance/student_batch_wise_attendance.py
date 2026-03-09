@@ -36,22 +36,23 @@ def execute(filters=None):
 		present_students = 0
 		absent_students = 0
 		leave_students = 0
-		student_group_strength = get_student_group_strength(student_group.name)
-		student_attendance = get_student_attendance(student_group.name, filters.get("date"))
+		student_group_name = student_group.get("name")
+		student_group_strength = get_student_group_strength(student_group_name)
+		student_attendance = get_student_attendance(student_group_name, filters.get("date"))
 		if student_attendance:
 			for attendance in student_attendance:
-				if attendance.status == "Present":
-					present_students = attendance.count
-				elif attendance.status == "Absent":
-					absent_students = attendance.count
-				elif attendance.status == "Leave":
-					leave_students = attendance.count
+				if attendance.get("status") == "Present":
+					present_students = attendance.get("count")
+				elif attendance.get("status") == "Absent":
+					absent_students = attendance.get("count")
+				elif attendance.get("status") == "Leave":
+					leave_students = attendance.get("count")
 
 		unmarked_students = student_group_strength - (
 			present_students + absent_students + leave_students
 		)
 		row = {
-			"student_group": student_group.name,
+			"student_group": student_group_name,
 			"student_group_strength": student_group_strength,
 			"present_students": present_students,
 			"absent_students": absent_students,

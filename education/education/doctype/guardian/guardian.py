@@ -25,11 +25,12 @@ class Guardian(Document):
 			fields=["parent"],
 		)
 		for student in students:
+			student_id = student.get("parent")
 			self.append(
 				"students",
 				{
-					"student": student.parent,
-					"student_name": frappe.db.get_value("Student", student.parent, "student_name"),
+					"student": student_id,
+					"student_name": frappe.db.get_value("Student", student_id, "student_name"),
 				},
 			)
 

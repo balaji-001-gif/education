@@ -25,7 +25,7 @@ def execute(filters=None):
 		},
 	)
 
-	student_list = [d.student for d in program_enrollments]
+	student_list = [d.get("student") for d in program_enrollments]
 	if not student_list:
 		return columns, []
 
@@ -34,26 +34,27 @@ def execute(filters=None):
 	guardian_map = get_guardian_map(student_list)
 
 	for d in program_enrollments:
-		student_details = student_map.get(d.student, {})
+		student_id = d.get("student")
+		student_details = student_map.get(student_id, {})
 
 		row = frappe._dict(
 			{
-				"group_roll_no": group_roll_no_map.get(d.student, ""),
-				"student_id": d.student,
-				"student_name": d.student_name,
+				"group_roll_no": group_roll_no_map.get(student_id, ""),
+				"student_id": student_id,
+				"student_name": d.get("student_name"),
 				"student_mobile_no": student_details.get("student_mobile_number", ""),
 				"student_email_id": student_details.get("student_email_id", ""),
 				"student_address": student_details.get("address", ""),
 			}
 		)
 
-		student_guardians = guardian_map.get(d.student, [])
+		student_guardians = guardian_map.get(student_id, [])
 		# only 2 guardians per student
 		for i, g in enumerate(student_guardians[:2]):
-			row[f"guardian{i+1}_name"] = g.guardian_name
-			row[f"relation_with_guardian{i+1}"] = g.relation
-			row[f"guardian{i+1}_mobile_no"] = g.mobile_number
-			row[f"guardian{i+1}_email_id"] = g.email_address
+			row[f"guardian{i+1}_name"] = g.get("guardian_name")
+			row[f"relation_with_guardian{i+1}"] = g.get("relation")
+			row[f"guardian{i+1}_mobile_no"] = g.get("mobile_number")
+			row[f"guardian{i+1}_email_id"] = g.get("email_address")
 
 		data.append(row)
 
@@ -162,12 +163,21 @@ def get_student_details(student_list):
 	)
 	for s in student_details:
 		student = frappe._dict()
-		student["student_mobile_number"] = s.student_mobile_number
-		student["student_email_id"] = s.student_email_id
+		student["student_mobile_number"] = s.get("student_mobile_number")
+		student["student_email_id"] = s.get("student_email_id")
 		student["address"] = ", ".join(
-			[d for d in [s.address_line_1, s.address_line_2, s.city, s.state] if d]
+			[
+				d
+				for d in [
+					s.get("address_line_1"),
+					s.get("address_line_2"),
+					s.get("city"),
+					s.get("state"),
+				]
+				if d
+			]
 		)
-		student_map[s.name] = student
+		student_map[s.get("name")] = student
 	return student_map
 
 
@@ -181,7 +191,7 @@ def get_guardian_map(student_list):
 		as_dict=1,
 	)
 
-	guardian_list = list(set([g.guardian for g in guardian_details])) or [""]
+	guardian_list = list(set([g.get("guardian") for g in guardian_details])) or [""]
 
 	guardian_mobile_no = dict(
 		frappe.db.sql(
@@ -202,9 +212,10 @@ def get_guardian_map(student_list):
 	)
 
 	for guardian in guardian_details:
-		guardian["mobile_number"] = guardian_mobile_no.get(guardian.guardian)
-		guardian["email_address"] = guardian_email_id.get(guardian.guardian)
-		guardian_map.setdefault(guardian.parent, []).append(guardian)
+		guardian_id = guardian.get("guardian")
+		guardian["mobile_number"] = guardian_mobile_no.get(guardian_id)
+		guardian["email_address"] = guardian_email_id.get(guardian_id)
+		guardian_map.setdefault(guardian.get("parent"), []).append(guardian)
 
 	return guardian_map
 
@@ -223,7 +234,7 @@ def get_student_roll_no(academic_year, program, batch):
 		roll_no_dict = dict(
 			frappe.db.sql(
 				"""select student, group_roll_number from `tabStudent Group Student` where parent=%s""",
-				(student_group[0].name),
+				(student_group[0].get("name")),
 			)
 		)
 		return roll_no_dict

@@ -25,7 +25,7 @@ class AssessmentResult(Document):
 		assessment_details = get_assessment_details(self.assessment_plan)
 		max_scores = {}
 		for d in assessment_details:
-			max_scores.update({d.assessment_criteria: d.maximum_score})
+			max_scores.update({d.get("assessment_criteria"): d.get("maximum_score")})
 
 		for d in self.details:
 			d.maximum_score = max_scores.get(d.assessment_criteria)
@@ -35,14 +35,16 @@ class AssessmentResult(Document):
 	def validate_grade(self):
 		self.total_score = 0.0
 		for d in self.details:
-			d.grade = get_grade(self.grading_scale, (flt(d.score) / d.maximum_score) * 100)
+			if d.maximum_score:
+				d.grade = get_grade(self.grading_scale, (flt(d.score) / d.maximum_score) * 100)
 			self.total_score += d.score
-		self.grade = get_grade(
-			self.grading_scale, (self.total_score / self.maximum_score) * 100
-		)
+		if self.maximum_score:
+			self.grade = get_grade(
+				self.grading_scale, (self.total_score / self.maximum_score) * 100
+			)
 
 	def validate_duplicate(self):
-		assessment_result = frappe.get_list(
+		assessment_result_list = frappe.get_list(
 			"Assessment Result",
 			filters={
 				"name": ("not in", [self.name]),
@@ -51,9 +53,9 @@ class AssessmentResult(Document):
 				"docstatus": ("!=", 2),
 			},
 		)
-		if assessment_result:
+		if assessment_result_list:
 			frappe.throw(
 				_("Assessment Result record {0} already exists.").format(
-					getlink("Assessment Result", assessment_result[0].name)
+					getlink("Assessment Result", assessment_result_list[0].get("name"))
 				)
 			)

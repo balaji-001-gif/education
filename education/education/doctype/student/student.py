@@ -197,21 +197,27 @@ class Student(Document):
 
 	def enroll_in_program(self, program_name):
 		try:
+			academic_year_doc = frappe.get_last_doc("Academic Year")
+			academic_year_name = academic_year_doc.name if academic_year_doc else None
 			enrollment = frappe.get_doc(
 				{
 					"doctype": "Program Enrollment",
 					"student": self.name,
-					"academic_year": frappe.get_last_doc("Academic Year").name,
+					"academic_year": academic_year_name,
 					"program": program_name,
 					"enrollment_date": frappe.utils.datetime.datetime.now(),
 				}
 			)
 			enrollment.save(ignore_permissions=True)
 		except frappe.exceptions.ValidationError:
-			enrollment_name = frappe.get_list(
-				"Program Enrollment", filters={"student": self.name, "Program": program_name}
-			)[0].name
-			return frappe.get_doc("Program Enrollment", enrollment_name)
+			enrollments = frappe.get_list(
+				"Program Enrollment", filters={"student": self.name, "program": program_name}
+			)
+			enrollment_name = enrollments[0].get("name") if enrollments else None
+			if enrollment_name:
+				return frappe.get_doc("Program Enrollment", enrollment_name)
+			else:
+				raise
 		else:
 			enrollment.submit()
 			return enrollment
@@ -231,15 +237,19 @@ class Student(Document):
 			)
 			enrollment.save(ignore_permissions=True)
 		except frappe.exceptions.ValidationError:
-			enrollment_name = frappe.get_list(
+			enrollments = frappe.get_list(
 				"Course Enrollment",
 				filters={
 					"student": self.name,
 					"course": course_name,
 					"program_enrollment": program_enrollment,
 				},
-			)[0].name
-			return frappe.get_doc("Course Enrollment", enrollment_name)
+			)
+			enrollment_name = enrollments[0].get("name") if enrollments else None
+			if enrollment_name:
+				return frappe.get_doc("Course Enrollment", enrollment_name)
+			else:
+				raise
 		else:
 			return enrollment
 

@@ -66,13 +66,14 @@ def get_formatted_result(args, get_course=False):
 	)
 
 	for result in assessment_result:
-		if get_course and result.course not in courses:
-			courses.append(result.course)
+		course = result.get("course")
+		if get_course and course not in courses:
+			courses.append(course)
 
 		details = frappe.get_all(
 			"Assessment Result Detail",
 			{
-				"parent": result.name,
+				"parent": result.get("name"),
 			},
 			["assessment_criteria", "maximum_score", "grade", "score"],
 		)

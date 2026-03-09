@@ -59,32 +59,22 @@ class StudentApplicant(Document):
 				)
 
 	def validation_from_student_admission(self):
-
 		student_admission = get_student_admission_data(self.student_admission, self.program)
 
-		if (
-			student_admission
-			and student_admission.min_age
-			and date_diff(
-				nowdate(), add_years(getdate(self.date_of_birth), student_admission.min_age)
-			)
-			< 0
-		):
-			frappe.throw(
-				_("Not eligible for the admission in this program as per Date Of Birth")
-			)
+		if student_admission:
+			min_age = student_admission.get("min_age")
+			max_age = student_admission.get("max_age")
+			date_of_birth = getdate(self.date_of_birth)
 
-		if (
-			student_admission
-			and student_admission.max_age
-			and date_diff(
-				nowdate(), add_years(getdate(self.date_of_birth), student_admission.max_age)
-			)
-			> 0
-		):
-			frappe.throw(
-				_("Not eligible for the admission in this program as per Date Of Birth")
-			)
+			if min_age and date_diff(nowdate(), add_years(date_of_birth, min_age)) < 0:
+				frappe.throw(
+					_("Not eligible for the admission in this program as per Date Of Birth")
+				)
+
+			if max_age and date_diff(nowdate(), add_years(date_of_birth, max_age)) > 0:
+				frappe.throw(
+					_("Not eligible for the admission in this program as per Date Of Birth")
+				)
 
 	def on_payment_authorized(self, *args, **kwargs):
 		self.db_set("paid", 1)

@@ -15,7 +15,7 @@ class Article(Document):
 def get_topics_without_article(article):
 	data = []
 	for entry in frappe.db.get_all("Topic"):
-		topic = frappe.get_doc("Topic", entry.name)
+		topic = frappe.get_doc("Topic", entry.get("name"))
 		topic_contents = [tc.content for tc in topic.topic_content]
 		if not topic_contents or article not in topic_contents:
 			data.append(topic.name)

@@ -27,7 +27,7 @@ class Topic(Document):
 def get_courses_without_topic(topic):
 	data = []
 	for entry in frappe.db.get_all("Course"):
-		course = frappe.get_doc("Course", entry.name)
+		course = frappe.get_doc("Course", entry.get("name"))
 		topics = [t.topic for t in course.topics]
 		if not topics or topic not in topics:
 			data.append(course.name)

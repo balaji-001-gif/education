@@ -19,7 +19,7 @@ def validate_overlap_for(doc, doctype, fieldname, value=None):
 		frappe.throw(
 			_("This {0} conflicts with {1} for {2} {3}").format(
 				doc.doctype,
-				existing.name,
+				existing.get("name"),
 				doc.meta.get_label(fieldname) if not value else fieldname,
 				value or doc.get(fieldname),
 			),
@@ -83,7 +83,7 @@ def get_current_student():
 	if email in ("Administrator", "Guest"):
 		return None
 	try:
-		student_id = frappe.get_all("Student", {"student_email_id": email}, ["name"])[0].name
+		student_id = frappe.get_all("Student", {"student_email_id": email}, ["name"])[0].get("name")
 		return frappe.get_doc("Student", student_id)
 	except (IndexError, frappe.DoesNotExistError):
 		return None
@@ -111,7 +111,7 @@ def get_enrollment(master, document, student):
 		)
 
 	if enrollments:
-		return enrollments[0].name
+		return enrollments[0].get("name")
 	else:
 		return None
 
@@ -386,13 +386,14 @@ def get_or_create_course_enrollment(course, program):
 	student = get_current_student()
 	course_enrollment = get_enrollment("course", course, student.name)
 	if not course_enrollment:
-		program_enrollment = get_enrollment("program", program.name, student.name)
+		program_name = program if isinstance(program, str) else program.name
+		program_enrollment = get_enrollment("program", program_name, student.name)
 		if not program_enrollment:
-			frappe.throw(_("You are not enrolled in program {0}").format(program))
+			frappe.throw(_("You are not enrolled in program {0}").format(program_name))
 			return
 		return student.enroll_in_course(
-			course_name=course,
-			program_enrollment=get_enrollment("program", program.name, student.name),
+			course_name=course if isinstance(course, str) else course.name,
+			program_enrollment=program_enrollment,
 		)
 	else:
 		return frappe.get_doc("Course Enrollment", course_enrollment)

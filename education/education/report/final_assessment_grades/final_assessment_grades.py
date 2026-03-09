@@ -34,20 +34,24 @@ def get_data(data, filters):
 	course_list = values.get("courses")
 
 	for result in assessment_result:
-		exists = [i for i, d in enumerate(data) if d.get("student") == result.student]
+		student_id = result.get("student")
+		exists = [i for i, d in enumerate(data) if d.get("student") == student_id]
+		course = result.get("course")
+		grade = result.get("grade")
+		total_score = result.get("total_score")
 		if not len(exists):
 			row = frappe._dict()
-			row.student = result.student
-			row.student_name = result.student_name
-			row.assessment_group = result.assessment_group
-			row["grade_" + frappe.scrub(result.course)] = result.grade
-			row["score_" + frappe.scrub(result.course)] = result.total_score
+			row.student = student_id
+			row.student_name = result.get("student_name")
+			row.assessment_group = result.get("assessment_group")
+			row["grade_" + frappe.scrub(course)] = grade
+			row["score_" + frappe.scrub(course)] = total_score
 
 			data.append(row)
 		else:
 			index = exists[0]
-			data[index]["grade_" + frappe.scrub(result.course)] = result.grade
-			data[index]["score_" + frappe.scrub(result.course)] = result.total_score
+			data[index]["grade_" + frappe.scrub(course)] = grade
+			data[index]["score_" + frappe.scrub(course)] = total_score
 
 	return data, course_list
 
