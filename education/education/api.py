@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import cstr, flt, getdate
+from frappe.utils import cstr, flt, getdate, today
 from frappe.utils.dateutils import get_dates_from_timegrain
 
 
@@ -51,7 +51,7 @@ def enroll_student(source_name):
 	student_applicant = frappe.db.get_value(
 		"Student Applicant",
 		source_name,
-		["student_category", "program", "academic_year"],
+		["student_category", "program", "academic_year", "academic_term"],
 		as_dict=True,
 	)
 	program_enrollment = frappe.new_doc("Program Enrollment")
@@ -60,6 +60,7 @@ def enroll_student(source_name):
 	program_enrollment.student_name = student.student_name
 	program_enrollment.program = student_applicant.get("program")
 	program_enrollment.academic_year = student_applicant.get("academic_year")
+	program_enrollment.academic_term = student_applicant.get("academic_term")
 	program_enrollment.save()
 
 	frappe.publish_realtime(
@@ -470,20 +471,25 @@ def update_email_group(doctype, name):
 
 @frappe.whitelist()
 def get_current_enrollment(student, academic_year=None):
-	current_academic_year = academic_year or frappe.defaults.get_defaults().academic_year
-	if not current_academic_year:
-		frappe.throw(_("Please set default Academic Year in Education Settings"))
+	# If academic_year is not passed, use today's date
+	compare_date = getdate(academic_year) if academic_year else getdate(today())
+
 	program_enrollment_list = frappe.db.sql(
 		"""
-		select
-			name as program_enrollment, student_name, program, student_batch_name as student_batch,
-			student_category, academic_term, academic_year
-		from
-			`tabProgram Enrollment`
-		where
-			student = %s and academic_year = %s
-		order by creation""",
-		(student, current_academic_year),
+		SELECT
+			pe.name AS program_enrollment, pe.student_name, pe.program, pe.student_batch_name AS student_batch,
+			pe.student_category, pe.academic_term, pe.academic_year
+		FROM
+			`tabProgram Enrollment` pe
+		JOIN
+			`tabAcademic Year` ay ON pe.academic_year = ay.name
+		WHERE
+			pe.student = %s
+			AND ay.year_end_date >= %s
+		ORDER BY
+			pe.creation
+		""",
+		(student, compare_date),
 		as_dict=1,
 	)
 
